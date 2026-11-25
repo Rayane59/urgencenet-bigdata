@@ -2,6 +2,11 @@ x-spark: &spark
   image: urgencenet-spark:3.5.3
   build: .
   entrypoint: []
+x-minio: &minio
+  image: urgencenet-minio:2025-02
+  build:
+    context: .
+    dockerfile: Dockerfile.minio
 services:
   kafka:
     image: apache/kafka:3.8.1
@@ -47,15 +52,14 @@ services:
     depends_on: [spark-master]
     command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "--cores", "2", "--memory", "1g", "spark://spark-master:7077"]
   minio:
-    image: minio/minio:RELEASE.2025-02-07T23-21-09Z
-    command: ["server", "/data", "--console-address", ":9001"]
+    <<: *minio
     environment:
       MINIO_ROOT_USER: urgencenet
       MINIO_ROOT_PASSWORD: urgency-demo-local
     ports: ["127.0.0.1:9001:9001"]
     volumes: ["lake-data:/data"]
   minio-init:
-    image: minio/mc:RELEASE.2025-02-08T19-14-21Z
+    <<: *minio
     depends_on: [minio]
     entrypoint: ["/bin/sh", "-ec"]
     command: ['for i in $$(seq 1 60); do mc alias set local http://minio:9000 urgencenet urgency-demo-local && mc mb --ignore-existing local/lake && exit 0; sleep 2; done; exit 1']

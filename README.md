@@ -4,7 +4,7 @@ Ce dépôt couvre les Parties 1, 2 et 3 du mini-projet EMSI. Docker Compose dém
 
 ## Prérequis
 
-Docker Desktop en mode conteneurs Linux ou Docker Engine avec Compose v2, accès aux registres Docker, PyPI et Maven Central. Prévoir environ 8 Go de mémoire pour Docker. Versions configurées : Spark/PySpark 3.5.3, Scala 2.12 et Python 3 de l'image Spark, Kafka 3.8.1, Jupyter Notebook 7.3.2, Hadoop AWS 3.3.4, AWS SDK 1.12.262, MinIO et mc (versions fixées dans le Compose). Les identifiants MinIO du Compose sont réservés à la démonstration locale et les interfaces publiées écoutent uniquement sur localhost.
+Docker Desktop en mode conteneurs Linux ou Docker Engine avec Compose v2, accès aux registres Docker, à GitHub Releases, à PyPI et à Maven Central. Prévoir environ 8 Go de mémoire pour Docker. Versions configurées : Spark/PySpark 3.5.3, Scala 2.12 et Python 3 de l'image Spark, Kafka 3.8.1, Jupyter Notebook 7.3.2, Hadoop AWS 3.3.4, AWS SDK 1.12.262, MinIO et mc (versions fixées dans Dockerfile.minio, binaires officiels téléchargés depuis leurs releases GitHub avec vérification SHA-256). Les identifiants MinIO du Compose sont réservés à la démonstration locale et les interfaces publiées écoutent uniquement sur localhost.
 
 ## Exécution
 

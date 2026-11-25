@@ -1,0 +1,91 @@
+name: Validation du jalon 1
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  batch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: urgencenet-ci
+      PREUVES: preuves-jalon1
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Démarrer le cluster Docker Compose
+        run: |
+          mkdir -p "$PREUVES" data spark-events
+          docker compose config --quiet
+          docker compose build spark-master minio
+          docker compose up -d --no-build
+          docker compose ps -a | tee "$PREUVES/services.txt"
+
+      - name: Vérifier le cluster et déposer les données Bronze
+        run: |
+          docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh \
+            --bootstrap-server kafka:9092 --describe --topic urgences | tee "$PREUVES/topic.txt"
+          grep -q 'PartitionCount: 3' "$PREUVES/topic.txt"
+
+          docker compose exec -T jupyter python3 -u cluster.py 2>&1 | tee "$PREUVES/session-spark.txt"
+          grep -Fq 'master=spark://spark-master:7077' "$PREUVES/session-spark.txt"
+          docker compose exec -T jupyter python3 -u producer.py --mode file --n 50000 | tee "$PREUVES/generation.txt"
+          docker compose run -T --rm --no-deps minio-init 'mc alias set local http://minio:9000 urgencenet urgency-demo-local && mc cp /input/urgences_history.jsonl /input/facilities.json local/lake/bronze/history/'
+
+      - name: Exécuter et contrôler le batch RDD et Spark SQL
+        run: |
+          docker compose exec -T jupyter python3 -u batch.py 2>&1 | tee "$PREUVES/batch.txt"
+          grep -q 'RDD délai par ville: médiane' "$PREUVES/batch.txt"
+          grep -q 'DataFrame délai par ville: médiane' "$PREUVES/batch.txt"
+          grep -q 'Dédoublonnage: 50000 avant, 49000 après, 1000 supprimés' "$PREUVES/batch.txt"
+          grep -q '12250 arrivées retrouvées, 0 écarts' "$PREUVES/batch.txt"
+          awk '/== Parsed Logical Plan ==/{plan=1} /^Auto-jointure:|^Dédoublonnage:|^Parquet Silver/{plan=0} plan{print}' \
+            "$PREUVES/batch.txt" > "$PREUVES/explain.txt"
+          grep -q 'BroadcastHashJoin' "$PREUVES/explain.txt"
+
+          docker compose run -T --rm --no-deps minio-init 'mc alias set local http://minio:9000 urgencenet urgency-demo-local >&2 && mc ls --recursive local/lake/' | tee "$PREUVES/objets-minio.txt"
+          grep -q 'bronze/history/urgences_history\.jsonl' "$PREUVES/objets-minio.txt"
+          for city in Casablanca Marrakech Rabat Tanger; do
+            grep -q "silver/urgences_history/city=$city/.*\.parquet" "$PREUVES/objets-minio.txt"
+          done
+
+      - name: Installer Chromium pour les captures
+        run: |
+          python3 -m venv .preuves-venv
+          .preuves-venv/bin/pip install playwright==1.50.0
+          .preuves-venv/bin/playwright install --with-deps chromium
+
+      - name: Capturer les interfaces Spark et MinIO
+        run: |
+          docker compose exec -d \
+            -e SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:///project/spark-events \
+            jupyter /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
+          .preuves-venv/bin/python scripts/capturer_preuves.py "$PREUVES"
+
+      - name: Archiver les preuves
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preuves-jalon1
+          path: preuves-jalon1/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Afficher les journaux en cas d’échec
+        if: failure()
+        run: docker compose logs --no-color --tail 100
+
+      - name: Arrêter le cluster de validation
+        if: always()
+        run: docker compose down --volumes

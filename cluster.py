@@ -32,6 +32,7 @@ def start_spark(local=False):
             "spark.cores.max": "4",
             "spark.executor.cores": "2",
             "spark.executor.memory": "768m",
+            "spark.scheduler.minRegisteredResourcesRatio": "1.0",
             "spark.eventLog.enabled": "true",
             "spark.eventLog.dir": "file:///project/spark-events",
             "spark.hadoop.fs.s3a.endpoint": "http://minio:9000",

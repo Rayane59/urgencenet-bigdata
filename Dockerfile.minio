@@ -1,0 +1,24 @@
+FROM debian:bookworm-slim
+
+ARG TARGETARCH
+ARG MINIO_VERSION=RELEASE.2025-02-07T23-21-09Z
+ARG MC_VERSION=RELEASE.2025-02-08T19-14-21Z
+
+RUN set -eu; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends ca-certificates curl; \
+    rm -rf /var/lib/apt/lists/*; \
+    for tool in minio mc; do \
+        case "$tool" in \
+            minio) version="$MINIO_VERSION" ;; \
+            mc) version="$MC_VERSION" ;; \
+        esac; \
+        url="https://github.com/minio/$tool/releases/download/$version/$tool.linux-$TARGETARCH.$version"; \
+        curl --fail --silent --show-error --location --retry 3 "$url" --output "/usr/local/bin/$tool"; \
+        checksum_file="$(curl --fail --silent --show-error --location --retry 3 "$url.sha256sum")"; \
+        checksum="${checksum_file%% *}"; \
+        echo "$checksum  /usr/local/bin/$tool" | sha256sum --check -; \
+        chmod +x "/usr/local/bin/$tool"; \
+    done
+
+CMD ["minio", "server", "/data", "--console-address", ":9001"]
