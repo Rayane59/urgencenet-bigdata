@@ -68,6 +68,7 @@ jobs:
 
       - name: Capturer les interfaces Spark et MinIO
         run: |
+          docker compose exec -T jupyter sh -ec 'chmod a+r /project/spark-events/app-*'
           docker compose exec -d \
             -e SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:///project/spark-events \
             jupyter /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
