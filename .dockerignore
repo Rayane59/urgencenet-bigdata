@@ -1,0 +1,8 @@
+.git
+.github
+data
+evidence
+spark-events
+__pycache__
+*.pdf
+*.txt

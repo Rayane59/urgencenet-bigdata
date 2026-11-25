@@ -1,0 +1,6 @@
+data/
+spark-events/
+__pycache__/
+.ipynb_checkpoints/
+evidence/*.log
+sortie-batch.txt
