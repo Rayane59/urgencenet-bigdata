@@ -6,7 +6,6 @@ import os
 import re
 from pathlib import Path
 from time import monotonic, sleep
-from urllib.error import URLError
 from urllib.parse import quote
 from urllib.request import urlopen
 
@@ -50,7 +49,7 @@ def choose_jobs(events):
         str(event["executionId"]) for event in events
         if event["Event"].endswith("SparkListenerSQLExecutionStart")
         and "BroadcastHashJoin" in event.get("physicalPlanDescription", "")
-        and "CARE_STARTED" in event.get("physicalPlanDescription", "")
+        and "Left keys [1]: [facility_id#" in event.get("physicalPlanDescription", "")
     }
     join_jobs = [
         event for event in sql_candidates
@@ -68,7 +67,7 @@ def wait_for_history(application):
             jobs = get_json(url)
             if jobs:
                 return
-        except URLError:
+        except OSError:
             pass
         sleep(2)
     raise RuntimeError(f"Historique Spark indisponible pour {application}.")
@@ -76,8 +75,10 @@ def wait_for_history(application):
 
 def capture_job(page: Page, application: str, job: dict, path: Path):
     page.goto(f"{HISTORY}/history/{quote(application)}/jobs/job/?id={job['Job ID']}")
-    page.locator("#job-dag-viz").click()
-    expect(page.locator("#dag-viz-graph svg")).to_be_visible(timeout=15000)
+    graph = page.locator("#dag-viz-graph svg")
+    if not graph.is_visible():
+        page.locator("#job-dag-viz").click()
+    expect(graph).to_be_visible(timeout=15000)
     expect(page.get_by_text(re.compile(r"Completed Stages")).first).to_be_visible()
     page.screenshot(path=path, full_page=True, animations="disabled")
 

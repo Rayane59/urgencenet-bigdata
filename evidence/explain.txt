@@ -1,0 +1,4 @@
+== Parsed Logical Plan ==
+'Join UsingJoin(Inner, [facility_id])
+:- Filter ((status#4 = CARE_STARTED) AND isnotnull(wait_minutes#6))
+:  +- Relation [visit_id#0,patient_id#1,facility_id#2,city#3,status#4,priority#5,wait_minutes#6,department#7,desk_id#8,transfer_to#9,event_time#10] json

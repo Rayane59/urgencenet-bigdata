@@ -1,0 +1,112 @@
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+26/11/25 23:25:17 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Spark=3.5.3 | master=spark://spark-master:7077 | appName=UrgenceNet - Jalon 1 | sc.defaultParallelism=4
+Ville | Prises en charge (brut)
+26/11/25 23:25:25 WARN MetricsConfig: Cannot locate configuration: tried hadoop-metrics2-s3a-file-system.properties,hadoop-metrics2.properties
+
+[('Casablanca', 3125), ('Marrakech', 3065), ('Rabat', 3182), ('Tanger', 3115)]
+Priorité | Passages triés (brut)
+
+[(1, 664), (2, 1837), (3, 4970), (4, 3424), (5, 1632)]
+Top 5 établissements (brut)
+
+[('F-008', 351), ('F-035', 350), ('F-020', 346), ('F-001', 340), ('F-028', 340)]
+Lineage RDD (délai par ville)
+(4) PythonRDD[21] at RDD at PythonRDD.scala:53 []
+ |  MapPartitionsRDD[20] at mapPartitions at PythonRDD.scala:160 []
+ |  ShuffledRDD[19] at partitionBy at <unknown>:0 []
+ +-(4) PairwiseRDD[18] at reduceByKey at batch.py:62 []
+    |  PythonRDD[17] at reduceByKey at batch.py:62 []
+    |  s3a://lake/bronze/history/urgences_history.jsonl MapPartitionsRDD[1] at textFile at <unknown>:0 []
+    |  s3a://lake/bronze/history/urgences_history.jsonl HadoopRDD[0] at textFile at <unknown>:0 []
+
+RDD délai par ville: médiane 0.868 s ; essais [0.919, 0.655, 0.868]
+DataFrame délai par ville: médiane 0.199 s ; essais [0.339, 0.199, 0.153]
+Ville | Nombre | Délai moyen (min) — mêmes résultats RDD, DataFrame et SQL
+Casablanca   |  3125 | 35.6566
+Marrakech    |  3065 | 36.9057
+Rabat        |  3182 | 36.1644
+Tanger       |  3115 | 35.4960
+
++----------+----------------+------+-----------+
+|city      |type            |nombre|delai_moyen|
++----------+----------------+------+-----------+
+|Casablanca|CENTRE_SANTE    |1277  |34.6985    |
+|Casablanca|CHU             |340   |37.7853    |
+|Casablanca|CLINIQUE        |907   |36.0595    |
+|Casablanca|HOPITAL_REGIONAL|601   |35.8802    |
+|Marrakech |CENTRE_SANTE    |1241  |35.9911    |
+|Marrakech |CHU             |282   |38.6667    |
+|Marrakech |CLINIQUE        |940   |37.8617    |
+|Marrakech |HOPITAL_REGIONAL|602   |36.4734    |
+|Rabat     |CENTRE_SANTE    |1290  |35.6705    |
+|Rabat     |CHU             |312   |36.2885    |
+|Rabat     |CLINIQUE        |918   |36.5       |
+|Rabat     |HOPITAL_REGIONAL|662   |36.6027    |
+|Tanger    |CENTRE_SANTE    |1251  |35.8833    |
+|Tanger    |CHU             |297   |32.3973    |
+|Tanger    |CLINIQUE        |985   |35.3279    |
+|Tanger    |HOPITAL_REGIONAL|582   |36.5292    |
++----------+----------------+------+-----------+
+
+EXPLAIN EXTENDED — jointure établissements
+== Parsed Logical Plan ==
+'Join UsingJoin(Inner, [facility_id])
+:- Filter ((status#4 = CARE_STARTED) AND isnotnull(wait_minutes#6))
+:  +- Relation [visit_id#0,patient_id#1,facility_id#2,city#3,status#4,priority#5,wait_minutes#6,department#7,desk_id#8,transfer_to#9,event_time#10] json
++- ResolvedHint (strategy=broadcast)
+   +- Project [facility_id#22, type#26]
+      +- Relation [facility_id#22,name#23,city#24,hospital_group#25,type#26,beds#27,latitude#28,longitude#29] json
+
+== Analyzed Logical Plan ==
+facility_id: string, visit_id: string, patient_id: string, city: string, status: string, priority: int, wait_minutes: int, department: string, desk_id: string, transfer_to: string, event_time: timestamp, type: string
+Project [facility_id#2, visit_id#0, patient_id#1, city#3, status#4, priority#5, wait_minutes#6, department#7, desk_id#8, transfer_to#9, event_time#10, type#26]
++- Join Inner, (facility_id#2 = facility_id#22)
+   :- Filter ((status#4 = CARE_STARTED) AND isnotnull(wait_minutes#6))
+   :  +- Relation [visit_id#0,patient_id#1,facility_id#2,city#3,status#4,priority#5,wait_minutes#6,department#7,desk_id#8,transfer_to#9,event_time#10] json
+   +- ResolvedHint (strategy=broadcast)
+      +- Project [facility_id#22, type#26]
+         +- Relation [facility_id#22,name#23,city#24,hospital_group#25,type#26,beds#27,latitude#28,longitude#29] json
+
+== Optimized Logical Plan ==
+Project [facility_id#2, visit_id#0, patient_id#1, city#3, status#4, priority#5, wait_minutes#6, department#7, desk_id#8, transfer_to#9, event_time#10, type#26]
++- Join Inner, (facility_id#2 = facility_id#22), rightHint=(strategy=broadcast)
+   :- Filter ((isnotnull(status#4) AND ((status#4 = CARE_STARTED) AND isnotnull(wait_minutes#6))) AND isnotnull(facility_id#2))
+   :  +- Relation [visit_id#0,patient_id#1,facility_id#2,city#3,status#4,priority#5,wait_minutes#6,department#7,desk_id#8,transfer_to#9,event_time#10] json
+   +- Project [facility_id#22, type#26]
+      +- Filter isnotnull(facility_id#22)
+         +- Relation [facility_id#22,name#23,city#24,hospital_group#25,type#26,beds#27,latitude#28,longitude#29] json
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- Project [facility_id#2, visit_id#0, patient_id#1, city#3, status#4, priority#5, wait_minutes#6, department#7, desk_id#8, transfer_to#9, event_time#10, type#26]
+   +- BroadcastHashJoin [facility_id#2], [facility_id#22], Inner, BuildRight, false
+      :- Filter (((isnotnull(status#4) AND (status#4 = CARE_STARTED)) AND isnotnull(wait_minutes#6)) AND isnotnull(facility_id#2))
+      :  +- FileScan json [visit_id#0,patient_id#1,facility_id#2,city#3,status#4,priority#5,wait_minutes#6,department#7,desk_id#8,transfer_to#9,event_time#10] Batched: false, DataFilters: [isnotnull(status#4), (status#4 = CARE_STARTED), isnotnull(wait_minutes#6), isnotnull(facility_id..., Format: JSON, Location: InMemoryFileIndex(1 paths)[s3a://lake/bronze/history/urgences_history.jsonl], PartitionFilters: [], PushedFilters: [IsNotNull(status), EqualTo(status,CARE_STARTED), IsNotNull(wait_minutes), IsNotNull(facility_id)], ReadSchema: struct<visit_id:string,patient_id:string,facility_id:string,city:string,status:string,priority:in...
+      +- BroadcastExchange HashedRelationBroadcastMode(List(input[0, string, false]),false), [plan_id=276]
+         +- Filter isnotnull(facility_id#22)
+            +- FileScan json [facility_id#22,type#26] Batched: false, DataFilters: [isnotnull(facility_id#22)], Format: JSON, Location: InMemoryFileIndex(1 paths)[s3a://lake/bronze/history/facilities.json], PartitionFilters: [], PushedFilters: [IsNotNull(facility_id)], ReadSchema: struct<facility_id:string,type:string>
+
++----------+-----+
+|expression|count|
++----------+-----+
+|      NULL|37513|
+|     court| 2393|
+|      long| 4104|
+|     moyen| 5990|
++----------+-----+
+
+Auto-jointure: 12250 prises en charge, 12250 arrivées retrouvées, 0 écarts
+Dédoublonnage: 50000 avant, 49000 après, 1000 supprimés
+
+Parquet Silver relu depuis s3a://lake/silver/urgences_history/
+
++----------+-----+
+|      city|count|
++----------+-----+
+|Casablanca|12236|
+| Marrakech|12048|
+|     Rabat|12472|
+|    Tanger|12244|
++----------+-----+

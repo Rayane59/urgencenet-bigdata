@@ -2,6 +2,8 @@
 
 Ce dépôt couvre les Parties 1, 2 et 3 du mini-projet EMSI. Docker Compose démarre Kafka en mode KRaft, Spark Standalone (un Master et deux Workers), MinIO et Jupyter. Le batch lit le JSONL de Bronze dans MinIO, calcule les indicateurs en RDD et Spark SQL, puis écrit et relit le Parquet Silver.
 
+Le [rapport du jalon 1](UrgenceNet_Jalon1_Rapport.pdf) contient les mesures, l’analyse et les captures de l’exécution. Les sorties et les captures originales sont dans [evidence/](evidence/).
+
 ## Prérequis
 
 Docker Desktop en mode conteneurs Linux ou Docker Engine avec Compose v2, accès aux registres Docker, à GitHub Releases, à PyPI et à Maven Central. Prévoir environ 8 Go de mémoire pour Docker. Versions configurées : Spark/PySpark 3.5.3, Scala 2.12 et Python 3 de l'image Spark, Kafka 3.8.1, Jupyter Notebook 7.3.2, Hadoop AWS 3.3.4, AWS SDK 1.12.262, MinIO et mc (versions fixées dans Dockerfile.minio, binaires officiels téléchargés depuis leurs releases GitHub avec vérification SHA-256). Les identifiants MinIO du Compose sont réservés à la démonstration locale et les interfaces publiées écoutent uniquement sur localhost.
@@ -31,13 +33,15 @@ Le générateur fourni avec ce dépôt remplace les fichiers de données non joi
 - [Jupyter](http://localhost:8888) : récupérer le jeton via docker compose exec jupyter jupyter server list. Les scripts s'exécutent également depuis un terminal Jupyter.
 - [Spark UI](http://localhost:4040) : accessible durant le batch. Pour retrouver les jobs après exécution, démarrer le History Server dans le conteneur Jupyter avec la commande ci-dessous.
 - [Spark History Server](http://localhost:18080) : ouvrir l'application UrgenceNet - Jalon 1. Dans Jobs, sélectionner le job RDD de l'agrégation par ville et le job SQL de la jointure. Capturer le DAG et les stages de chacun. Noter le nombre de stages exécutés et ceux déjà réutilisés. Le groupe BENCH contient les exécutions chronométrées.
-- Dans sortie-batch.txt, relever la sortie de explain(True) et les médianes des trois essais après une exécution d'échauffement. Pour la remise, intégrer les captures et les résultats du déploiement au rapport en respectant la limite de 10 pages.
+- Dans sortie-batch.txt, relever la sortie de explain(True) et les médianes des trois essais après une exécution d'échauffement.
 
 ```text
 docker compose exec -d -e SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:///project/spark-events jupyter /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
 ```
 
 Les lignes de la sortie du batch incluent le lineage, le top 5, les priorités, les résultats par ville et type, le dédoublonnage, le contrôle par auto-jointure et la relecture de Silver. Après les vérifications, `docker compose down` arrête les services et conserve les volumes.
+
+Le workflow [Validation du jalon 1](.github/workflows/jalon1.yml) rejoue ce parcours sous Linux et génère l’artefact `preuves-jalon1` avec les résultats et les captures.
 
 ## Remise
 

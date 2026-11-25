@@ -1,0 +1,54 @@
+[
+  {
+    "jobId": 16,
+    "name": "showString at <unknown>:0",
+    "description": "Partie 3 - Jointure, qualit\u00e9 et Silver",
+    "submissionTime": "2026-11-25T23:25:49.927GMT",
+    "completionTime": "2026-11-25T23:25:50.112GMT",
+    "stageIds": [
+      28,
+      29
+    ],
+    "jobGroup": "SQL",
+    "jobTags": [],
+    "status": "SUCCEEDED",
+    "numTasks": 5,
+    "numActiveTasks": 0,
+    "numCompletedTasks": 1,
+    "numSkippedTasks": 4,
+    "numFailedTasks": 0,
+    "numKilledTasks": 0,
+    "numCompletedIndices": 1,
+    "numActiveStages": 0,
+    "numCompletedStages": 1,
+    "numSkippedStages": 1,
+    "numFailedStages": 0,
+    "killedTasksSummary": {}
+  },
+  {
+    "jobId": 0,
+    "name": "collect at batch.py:67",
+    "description": "Partie 2 - Spark Core",
+    "submissionTime": "2026-11-25T23:25:27.410GMT",
+    "completionTime": "2026-11-25T23:25:32.288GMT",
+    "stageIds": [
+      0,
+      1
+    ],
+    "jobGroup": "RDD",
+    "jobTags": [],
+    "status": "SUCCEEDED",
+    "numTasks": 8,
+    "numActiveTasks": 0,
+    "numCompletedTasks": 8,
+    "numSkippedTasks": 0,
+    "numFailedTasks": 0,
+    "numKilledTasks": 0,
+    "numCompletedIndices": 8,
+    "numActiveStages": 0,
+    "numCompletedStages": 2,
+    "numSkippedStages": 0,
+    "numFailedStages": 0,
+    "killedTasksSummary": {}
+  }
+]
