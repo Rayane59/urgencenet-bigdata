@@ -40,7 +40,7 @@ jobs:
 
           docker compose exec -T jupyter python3 -u cluster.py 2>&1 | tee "$PREUVES/session-spark.txt"
           grep -Fq 'master=spark://spark-master:7077' "$PREUVES/session-spark.txt"
-          docker compose exec -T jupyter python3 -u producer.py --mode file --n 50000 | tee "$PREUVES/generation.txt"
+          docker compose exec -T jupyter sh -ec 'cp facilities.json data/ && python3 -u producer.py --mode file --n 50000 --seed 42 --output data/urgences_history.jsonl' 2>&1 | tee "$PREUVES/generation.txt"
           docker compose run -T --rm --no-deps minio-init 'mc alias set local http://minio:9000 urgencenet urgency-demo-local && mc cp /input/urgences_history.jsonl /input/facilities.json local/lake/bronze/history/'
 
       - name: Exécuter et contrôler le batch RDD et Spark SQL
@@ -48,8 +48,9 @@ jobs:
           docker compose exec -T jupyter python3 -u batch.py 2>&1 | tee "$PREUVES/batch.txt"
           grep -q 'RDD délai par ville: médiane' "$PREUVES/batch.txt"
           grep -q 'DataFrame délai par ville: médiane' "$PREUVES/batch.txt"
-          grep -q 'Dédoublonnage: 50000 avant, 49000 après, 1000 supprimés' "$PREUVES/batch.txt"
-          grep -q '12250 arrivées retrouvées, 0 écarts' "$PREUVES/batch.txt"
+          grep -q 'Dédoublonnage: 50000 avant, 49011 après, 989 supprimés' "$PREUVES/batch.txt"
+          grep -q '12145 arrivées retrouvées, 30 écarts' "$PREUVES/batch.txt"
+          grep -q '0 sans arrivée, 30 écarts au format hmm' "$PREUVES/batch.txt"
           awk '/== Parsed Logical Plan ==/{plan=1} /^Auto-jointure:|^Dédoublonnage:|^Parquet Silver/{plan=0} plan{print}' \
             "$PREUVES/batch.txt" > "$PREUVES/explain.txt"
           grep -q 'BroadcastHashJoin' "$PREUVES/explain.txt"

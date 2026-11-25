@@ -3,8 +3,8 @@
     "jobId": 16,
     "name": "showString at <unknown>:0",
     "description": "Partie 3 - Jointure, qualit\u00e9 et Silver",
-    "submissionTime": "2026-11-25T23:25:49.927GMT",
-    "completionTime": "2026-11-25T23:25:50.112GMT",
+    "submissionTime": "2026-11-25T23:36:20.379GMT",
+    "completionTime": "2026-11-25T23:36:20.701GMT",
     "stageIds": [
       28,
       29
@@ -29,8 +29,8 @@
     "jobId": 0,
     "name": "collect at batch.py:67",
     "description": "Partie 2 - Spark Core",
-    "submissionTime": "2026-11-25T23:25:27.410GMT",
-    "completionTime": "2026-11-25T23:25:32.288GMT",
+    "submissionTime": "2026-11-25T23:35:49.121GMT",
+    "completionTime": "2026-11-25T23:35:56.612GMT",
     "stageIds": [
       0,
       1

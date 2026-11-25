@@ -18,13 +18,13 @@ docker compose ps -a
 docker compose logs kafka-init minio-init
 docker compose exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --describe --topic urgences
 docker compose exec jupyter python3 cluster.py
-docker compose exec jupyter python3 producer.py --mode file --n 50000
+docker compose exec jupyter sh -ec "mkdir -p data && cp facilities.json data/ && python3 producer.py --mode file --n 50000 --seed 42 --output data/urgences_history.jsonl"
 docker compose run --rm --no-deps minio-init "mc alias set local http://minio:9000 urgencenet urgency-demo-local && mc cp /input/urgences_history.jsonl /input/facilities.json local/lake/bronze/history/"
 docker compose exec -T jupyter python3 -u batch.py > sortie-batch.txt
 docker compose run --rm --no-deps minio-init "mc alias set local http://minio:9000 urgencenet urgency-demo-local && mc ls --recursive local/lake/"
 ```
 
-Le générateur fourni avec ce dépôt remplace les fichiers de données non joints au sujet. Avec la graine 42, il crée 50 000 lignes pour 12 250 passages, dont 1 000 doublons, et un référentiel JSONL de 40 établissements. Les comptages analytiques sont calculés sur Bronze avant dédoublonnage. La comparaison des délais par auto-jointure utilise les lignes dédoublonnées. Le batch remplace le contenu de son préfixe Silver à chaque exécution. Ne pas lancer deux écritures simultanées sur ce préfixe.
+Le dépôt utilise le générateur et le référentiel de 40 établissements fournis dans `UrgenceNet_files.zip`. La commande crée l’historique synthétique de 50 000 lignes avec la graine 42. Les comptages analytiques utilisent les événements Bronze avant dédoublonnage. Pour contrôler les délais, le batch rapproche les arrivées et les débuts de prise en charge après dédoublonnage, arrondit le délai à la minute entière inférieure et recense les écarts de saisie au format `hmm`. L’export Silver conserve les valeurs des événements dédoublonnés et remplace le contenu de son préfixe à chaque exécution. Ne pas lancer deux écritures simultanées sur ce préfixe.
 
 ## Interfaces et preuves à joindre
 

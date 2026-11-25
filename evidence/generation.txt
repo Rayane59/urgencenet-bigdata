@@ -1,1 +1,4 @@
-50000 événements, 12250 passages, 1000 doublons, 40 établissements
+50000 événements écrits dans data/urgences_history.jsonl
+  période couverte : 2026-11-09T00:01:13Z -> 2026-11-15T21:42:56Z
+  statuts : {'ARRIVED': 12697, 'TRIAGED': 12751, 'CARE_STARTED': 12380, 'DISCHARGED': 11581, 'TRANSFERRED': 591}
+  passages : 12477  (en retard : 2427, doublons : 997)

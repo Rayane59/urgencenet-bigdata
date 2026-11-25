@@ -1,8 +1,8 @@
 Added `local` successfully.
-[2026-11-25 23:25:08 UTC] 7.7KiB STANDARD bronze/history/facilities.json
-[2026-11-25 23:25:09 UTC]  13MiB STANDARD bronze/history/urgences_history.jsonl
-[2026-11-25 23:26:10 UTC]     0B STANDARD silver/urgences_history/_SUCCESS
-[2026-11-25 23:26:09 UTC] 207KiB STANDARD silver/urgences_history/city=Casablanca/part-00000-52687552-3046-4c11-b120-49e2cadfe657.c000.snappy.parquet
-[2026-11-25 23:26:09 UTC] 204KiB STANDARD silver/urgences_history/city=Marrakech/part-00000-52687552-3046-4c11-b120-49e2cadfe657.c000.snappy.parquet
-[2026-11-25 23:26:09 UTC] 211KiB STANDARD silver/urgences_history/city=Rabat/part-00000-52687552-3046-4c11-b120-49e2cadfe657.c000.snappy.parquet
-[2026-11-25 23:26:10 UTC] 207KiB STANDARD silver/urgences_history/city=Tanger/part-00000-52687552-3046-4c11-b120-49e2cadfe657.c000.snappy.parquet
+[2026-11-25 23:35:28 UTC] 7.4KiB STANDARD bronze/history/facilities.json
+[2026-11-25 23:35:29 UTC]  13MiB STANDARD bronze/history/urgences_history.jsonl
+[2026-11-25 23:36:42 UTC]     0B STANDARD silver/urgences_history/_SUCCESS
+[2026-11-25 23:36:41 UTC] 298KiB STANDARD silver/urgences_history/city=Casablanca/part-00000-28a21d54-16ae-46a6-9d33-cf389d4c2449.c000.snappy.parquet
+[2026-11-25 23:36:41 UTC] 188KiB STANDARD silver/urgences_history/city=Marrakech/part-00000-28a21d54-16ae-46a6-9d33-cf389d4c2449.c000.snappy.parquet
+[2026-11-25 23:36:42 UTC] 169KiB STANDARD silver/urgences_history/city=Rabat/part-00000-28a21d54-16ae-46a6-9d33-cf389d4c2449.c000.snappy.parquet
+[2026-11-25 23:36:42 UTC] 140KiB STANDARD silver/urgences_history/city=Tanger/part-00000-28a21d54-16ae-46a6-9d33-cf389d4c2449.c000.snappy.parquet

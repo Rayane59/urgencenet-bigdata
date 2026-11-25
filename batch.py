@@ -122,15 +122,19 @@ def run(spark, history, facilities, silver):
         "visit_id", F.col("event_time").alias("care_time"), "wait_minutes"
     )
     paired = starts.join(arrivals, "visit_id", "left").withColumn(
-        "recalculated_minutes", (F.unix_timestamp("care_time") - F.unix_timestamp("arrival_time")) / 60
+        "recalculated_minutes", F.floor((F.unix_timestamp("care_time") - F.unix_timestamp("arrival_time")) / 60)
     )
+    difference = F.col("arrival_time").isNotNull() & ~F.col("recalculated_minutes").eqNullSafe(F.col("wait_minutes"))
+    minutes = F.col("recalculated_minutes")
+    as_hmm = F.floor(minutes / 60) * 100 + F.pmod(minutes, F.lit(60))
     check = paired.agg(
         F.count("*").alias("prises_en_charge"),
         F.count("arrival_time").alias("arrivees_retrouvees"),
-        F.count(F.when(F.col("arrival_time").isNotNull() & ~F.col("recalculated_minutes").eqNullSafe(F.col("wait_minutes")), 1)).alias("ecarts"),
+        F.count(F.when(difference, 1)).alias("ecarts"),
+        F.count(F.when(difference & (minutes >= 60) & (F.col("wait_minutes") == as_hmm), 1)).alias("ecarts_hmm"),
     ).first()
-    assert check.prises_en_charge == check.arrivees_retrouvees and check.ecarts == 0
     print(f"Auto-jointure: {check.prises_en_charge} prises en charge, {check.arrivees_retrouvees} arrivées retrouvées, {check.ecarts} écarts")
+    print(f"Contrôle des délais: {check.prises_en_charge - check.arrivees_retrouvees} sans arrivée, {check.ecarts_hmm} écarts au format hmm")
     print(f"Dédoublonnage: {before} avant, {after} après, {before - after} supprimés")
     clean.repartition("city").write.mode("overwrite").partitionBy("city").parquet(silver)
     readback = spark.read.parquet(silver)

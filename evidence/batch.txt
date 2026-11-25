@@ -1,17 +1,17 @@
 Setting default log level to "WARN".
 To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
-26/11/25 23:25:17 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+26/11/25 23:35:37 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
 Spark=3.5.3 | master=spark://spark-master:7077 | appName=UrgenceNet - Jalon 1 | sc.defaultParallelism=4
 Ville | Prises en charge (brut)
-26/11/25 23:25:25 WARN MetricsConfig: Cannot locate configuration: tried hadoop-metrics2-s3a-file-system.properties,hadoop-metrics2.properties
+26/11/25 23:35:46 WARN MetricsConfig: Cannot locate configuration: tried hadoop-metrics2-s3a-file-system.properties,hadoop-metrics2.properties
 
-[('Casablanca', 3125), ('Marrakech', 3065), ('Rabat', 3182), ('Tanger', 3115)]
+[('Casablanca', 4612), ('Marrakech', 2936), ('Rabat', 2642), ('Tanger', 2190)]
 Priorité | Passages triés (brut)
 
-[(1, 664), (2, 1837), (3, 4970), (4, 3424), (5, 1632)]
+[(1, 450), (2, 1529), (3, 4446), (4, 4349), (5, 1977)]
 Top 5 établissements (brut)
 
-[('F-008', 351), ('F-035', 350), ('F-020', 346), ('F-001', 340), ('F-028', 340)]
+[('F-015', 993), ('F-001', 827), ('F-032', 680), ('F-024', 552), ('F-012', 512)]
 Lineage RDD (délai par ville)
 (4) PythonRDD[21] at RDD at PythonRDD.scala:53 []
  |  MapPartitionsRDD[20] at mapPartitions at PythonRDD.scala:160 []
@@ -21,33 +21,34 @@ Lineage RDD (délai par ville)
     |  s3a://lake/bronze/history/urgences_history.jsonl MapPartitionsRDD[1] at textFile at <unknown>:0 []
     |  s3a://lake/bronze/history/urgences_history.jsonl HadoopRDD[0] at textFile at <unknown>:0 []
 
-RDD délai par ville: médiane 0.868 s ; essais [0.919, 0.655, 0.868]
-DataFrame délai par ville: médiane 0.199 s ; essais [0.339, 0.199, 0.153]
+RDD délai par ville: médiane 0.875 s ; essais [0.803, 0.875, 1.461]
+DataFrame délai par ville: médiane 0.236 s ; essais [0.236, 0.221, 0.412]
+
 Ville | Nombre | Délai moyen (min) — mêmes résultats RDD, DataFrame et SQL
-Casablanca   |  3125 | 35.6566
-Marrakech    |  3065 | 36.9057
-Rabat        |  3182 | 36.1644
-Tanger       |  3115 | 35.4960
+Casablanca   |  4612 | 44.1043
+Marrakech    |  2936 | 45.5572
+Rabat        |  2642 | 47.4527
+Tanger       |  2190 | 43.8242
 
 +----------+----------------+------+-----------+
 |city      |type            |nombre|delai_moyen|
 +----------+----------------+------+-----------+
-|Casablanca|CENTRE_SANTE    |1277  |34.6985    |
-|Casablanca|CHU             |340   |37.7853    |
-|Casablanca|CLINIQUE        |907   |36.0595    |
-|Casablanca|HOPITAL_REGIONAL|601   |35.8802    |
-|Marrakech |CENTRE_SANTE    |1241  |35.9911    |
-|Marrakech |CHU             |282   |38.6667    |
-|Marrakech |CLINIQUE        |940   |37.8617    |
-|Marrakech |HOPITAL_REGIONAL|602   |36.4734    |
-|Rabat     |CENTRE_SANTE    |1290  |35.6705    |
-|Rabat     |CHU             |312   |36.2885    |
-|Rabat     |CLINIQUE        |918   |36.5       |
-|Rabat     |HOPITAL_REGIONAL|662   |36.6027    |
-|Tanger    |CENTRE_SANTE    |1251  |35.8833    |
-|Tanger    |CHU             |297   |32.3973    |
-|Tanger    |CLINIQUE        |985   |35.3279    |
-|Tanger    |HOPITAL_REGIONAL|582   |36.5292    |
+|Casablanca|CENTRE_SANTE    |1321  |45.623     |
+|Casablanca|CHU             |827   |51.5187    |
+|Casablanca|CLINIQUE        |1058  |28.7665    |
+|Casablanca|HOPITAL_REGIONAL|1406  |49.8578    |
+|Marrakech |CENTRE_SANTE    |1027  |44.0964    |
+|Marrakech |CHU             |425   |53.8965    |
+|Marrakech |CLINIQUE        |480   |30.5542    |
+|Marrakech |HOPITAL_REGIONAL|1004  |50.6942    |
+|Rabat     |CENTRE_SANTE    |441   |42.2268    |
+|Rabat     |CHU             |993   |56.5247    |
+|Rabat     |CLINIQUE        |475   |27.3874    |
+|Rabat     |HOPITAL_REGIONAL|733   |51.3097    |
+|Tanger    |CENTRE_SANTE    |678   |42.5737    |
+|Tanger    |CHU             |552   |54.8786    |
+|Tanger    |CLINIQUE        |551   |27.5608    |
+|Tanger    |HOPITAL_REGIONAL|409   |52.8875    |
 +----------+----------------+------+-----------+
 
 EXPLAIN EXTENDED — jointure établissements
@@ -91,22 +92,22 @@ AdaptiveSparkPlan isFinalPlan=false
 +----------+-----+
 |expression|count|
 +----------+-----+
-|      NULL|37513|
-|     court| 2393|
-|      long| 4104|
-|     moyen| 5990|
+|      NULL|37620|
+|     court| 1395|
+|      long| 4397|
+|     moyen| 6588|
 +----------+-----+
 
-Auto-jointure: 12250 prises en charge, 12250 arrivées retrouvées, 0 écarts
-Dédoublonnage: 50000 avant, 49000 après, 1000 supprimés
+Auto-jointure: 12145 prises en charge, 12145 arrivées retrouvées, 30 écarts
+Contrôle des délais: 0 sans arrivée, 30 écarts au format hmm
+Dédoublonnage: 50000 avant, 49011 après, 989 supprimés
 
 Parquet Silver relu depuis s3a://lake/silver/urgences_history/
-
 +----------+-----+
 |      city|count|
 +----------+-----+
-|Casablanca|12236|
-| Marrakech|12048|
-|     Rabat|12472|
-|    Tanger|12244|
+|Casablanca|18298|
+| Marrakech|11618|
+|     Rabat|10421|
+|    Tanger| 8674|
 +----------+-----+
