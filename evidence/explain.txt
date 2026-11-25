@@ -2,3 +2,35 @@
 'Join UsingJoin(Inner, [facility_id])
 :- Filter ((status#4 = CARE_STARTED) AND isnotnull(wait_minutes#6))
 :  +- Relation [visit_id#0,patient_id#1,facility_id#2,city#3,status#4,priority#5,wait_minutes#6,department#7,desk_id#8,transfer_to#9,event_time#10] json
++- ResolvedHint (strategy=broadcast)
+   +- Project [facility_id#22, type#26]
+      +- Relation [facility_id#22,name#23,city#24,hospital_group#25,type#26,beds#27,latitude#28,longitude#29] json
+
+== Analyzed Logical Plan ==
+facility_id: string, visit_id: string, patient_id: string, city: string, status: string, priority: int, wait_minutes: int, department: string, desk_id: string, transfer_to: string, event_time: timestamp, type: string
+Project [facility_id#2, visit_id#0, patient_id#1, city#3, status#4, priority#5, wait_minutes#6, department#7, desk_id#8, transfer_to#9, event_time#10, type#26]
++- Join Inner, (facility_id#2 = facility_id#22)
+   :- Filter ((status#4 = CARE_STARTED) AND isnotnull(wait_minutes#6))
+   :  +- Relation [visit_id#0,patient_id#1,facility_id#2,city#3,status#4,priority#5,wait_minutes#6,department#7,desk_id#8,transfer_to#9,event_time#10] json
+   +- ResolvedHint (strategy=broadcast)
+      +- Project [facility_id#22, type#26]
+         +- Relation [facility_id#22,name#23,city#24,hospital_group#25,type#26,beds#27,latitude#28,longitude#29] json
+
+== Optimized Logical Plan ==
+Project [facility_id#2, visit_id#0, patient_id#1, city#3, status#4, priority#5, wait_minutes#6, department#7, desk_id#8, transfer_to#9, event_time#10, type#26]
++- Join Inner, (facility_id#2 = facility_id#22), rightHint=(strategy=broadcast)
+   :- Filter ((isnotnull(status#4) AND ((status#4 = CARE_STARTED) AND isnotnull(wait_minutes#6))) AND isnotnull(facility_id#2))
+   :  +- Relation [visit_id#0,patient_id#1,facility_id#2,city#3,status#4,priority#5,wait_minutes#6,department#7,desk_id#8,transfer_to#9,event_time#10] json
+   +- Project [facility_id#22, type#26]
+      +- Filter isnotnull(facility_id#22)
+         +- Relation [facility_id#22,name#23,city#24,hospital_group#25,type#26,beds#27,latitude#28,longitude#29] json
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- Project [facility_id#2, visit_id#0, patient_id#1, city#3, status#4, priority#5, wait_minutes#6, department#7, desk_id#8, transfer_to#9, event_time#10, type#26]
+   +- BroadcastHashJoin [facility_id#2], [facility_id#22], Inner, BuildRight, false
+      :- Filter (((isnotnull(status#4) AND (status#4 = CARE_STARTED)) AND isnotnull(wait_minutes#6)) AND isnotnull(facility_id#2))
+      :  +- FileScan json [visit_id#0,patient_id#1,facility_id#2,city#3,status#4,priority#5,wait_minutes#6,department#7,desk_id#8,transfer_to#9,event_time#10] Batched: false, DataFilters: [isnotnull(status#4), (status#4 = CARE_STARTED), isnotnull(wait_minutes#6), isnotnull(facility_id..., Format: JSON, Location: InMemoryFileIndex(1 paths)[s3a://lake/bronze/history/urgences_history.jsonl], PartitionFilters: [], PushedFilters: [IsNotNull(status), EqualTo(status,CARE_STARTED), IsNotNull(wait_minutes), IsNotNull(facility_id)], ReadSchema: struct<visit_id:string,patient_id:string,facility_id:string,city:string,status:string,priority:in...
+      +- BroadcastExchange HashedRelationBroadcastMode(List(input[0, string, false]),false), [plan_id=276]
+         +- Filter isnotnull(facility_id#22)
+            +- FileScan json [facility_id#22,type#26] Batched: false, DataFilters: [isnotnull(facility_id#22)], Format: JSON, Location: InMemoryFileIndex(1 paths)[s3a://lake/bronze/history/facilities.json], PartitionFilters: [], PushedFilters: [IsNotNull(facility_id)], ReadSchema: struct<facility_id:string,type:string>
